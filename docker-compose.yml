@@ -1,0 +1,60 @@
+version: "3.7"
+
+services:
+  database:
+    image: postgres:13
+    restart: always
+    networks:
+      - medias-ms
+    environment: 
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck:
+      test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    ports:
+      - "5433:5432"
+    volumes:
+      - data:/var/lib/postgresql/data
+      
+  medias-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ${TARGET:-run}
+    restart: on-failure
+    networks:
+      - medias-ms
+      - network-for-ms
+    environment: 
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_DOMAIN: ${DATABASE_DOMAIN}
+      DATABASE_SCHEMA: ${DATABASE_SCHEMA}
+      DATABASE_PORT: ${DATABASE_PORT}
+      SERVER_PORT: ${SERVER_PORT}
+      AMQP_SERVER_URL: ${AMQP_SERVER_URL}
+    ports:
+    - "${SERVER_PORT}:${SERVER_PORT}"
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - images:/root/static
+
+volumes:
+  data:
+    name: medias-ms-database
+  images:
+    name: images
+
+networks:
+  medias-ms:
+    name: medias-ms
+    driver: bridge
+  network-for-ms:
+    name: network-for-ms
