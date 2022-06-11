@@ -9,6 +9,7 @@ import (
 	"medias-ms/src/repository"
 	"medias-ms/src/route"
 	"medias-ms/src/service"
+	"medias-ms/src/utils"
 	"net/http"
 	"os"
 
@@ -17,6 +18,9 @@ import (
 )
 
 func main() {
+	logger := utils.Logger()
+
+	logger.Info("Connecting with DB")
 	dataBase, _ := config_db.SetupDB()
 
 	repositoryContainer := initializeRepositories(dataBase)
@@ -32,6 +36,8 @@ func main() {
 	port := os.Getenv("SERVER_PORT")
 
 	amqpServerURL := os.Getenv("AMQP_SERVER_URL")
+
+	logger.Info("Connecting on RabbitMq")
 
 	rabbit := rabbitmq.RMQConsumer{
 		ConnectionString: amqpServerURL,
@@ -54,6 +60,8 @@ func main() {
 
 	go rabbit.Worker(messages)
 
+	logger.Info("Starting server")
+
 	http.ListenAndServe(fmt.Sprintf(":%s", port), cors.AllowAll().Handler(router))
 }
 
@@ -70,6 +78,7 @@ func initializeControllers(serviceContainer config.ServiceContainer) config.Cont
 func initializeServices(repositoryContainer config.RepositoryContainer) config.ServiceContainer {
 	mediaService := service.MediaService{
 		MediaRepository: repositoryContainer.MediaRepository,
+		Logger:          utils.Logger(),
 	}
 
 	container := config.NewServiceContainer(
