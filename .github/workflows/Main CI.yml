@@ -12,7 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: webiny/action-conventional-commits@v1.0.3
     
     - name: Create semantic version
       id: semantic-version
@@ -57,4 +56,3 @@ jobs:
       with:
         name: ${{ env.IMAGE_NAME }}-${{ steps.semantic-version.outputs.version }}
         path: ./${{ env.IMAGE_NAME }}-${{ steps.semantic-version.outputs.version }}.exe
-

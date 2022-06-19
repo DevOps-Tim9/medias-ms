@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gofrs/uuid"
+	"github.com/sirupsen/logrus"
 )
 
 type IMediaService interface {
@@ -20,6 +21,7 @@ type IMediaService interface {
 
 type MediaService struct {
 	MediaRepository repository.IMediaRepository
+	Logger          *logrus.Entry
 }
 
 func (s MediaService) GetById(id uint) (*entity.Media, error) {
@@ -33,11 +35,15 @@ func (s MediaService) GetById(id uint) (*entity.Media, error) {
 }
 
 func (s MediaService) Save(file *multipart.FileHeader) (entity.Media, error) {
+	s.Logger.Info("Saving media in file system")
+
 	url := s.SaveFile(file)
 
 	media := entity.Media{
 		Url: url,
 	}
+
+	s.Logger.Info("Saving media in database.")
 
 	media, error := s.MediaRepository.Create(media)
 
@@ -45,13 +51,21 @@ func (s MediaService) Save(file *multipart.FileHeader) (entity.Media, error) {
 }
 
 func (s MediaService) Delete(id uint) error {
+	s.Logger.Info("Finding media by id")
+
 	media, err := s.GetById(id)
 
 	if err != nil {
+		s.Logger.Error("Media doesn't exist")
+
 		return err
 	}
 
+	s.Logger.Info("Started deleting media from file system")
+
 	os.Remove("./static/images/" + strings.Split(media.Url, "/")[5])
+
+	s.Logger.Info("Started deleting media from DB")
 
 	s.MediaRepository.Delete(id)
 
@@ -59,6 +73,8 @@ func (s MediaService) Delete(id uint) error {
 }
 
 func (s MediaService) SaveFile(fileHeader *multipart.FileHeader) string {
+	s.Logger.Info("Saving media in file system")
+
 	fileName, _ := uuid.NewV4()
 
 	destinationFilePath, uriPathToImage := s.createDestinationFilePathAndUriPath(fileName.String())
@@ -75,6 +91,8 @@ func (s MediaService) SaveFile(fileHeader *multipart.FileHeader) string {
 	io.Copy(output, file)
 
 	output.Close()
+
+	s.Logger.Info("Media saved in file system")
 
 	return "/medias-ms/" + uriPathToImage
 }

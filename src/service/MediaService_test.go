@@ -4,6 +4,7 @@ import (
 	"errors"
 	"medias-ms/src/entity"
 	"medias-ms/src/repository"
+	"medias-ms/src/utils"
 	"mime/multipart"
 	"net/textproto"
 	"os"
@@ -27,7 +28,10 @@ func TestMediaServiceUnitTestSuite(t *testing.T) {
 func (suite *MediaServiceUnitTestSuite) SetupSuite() {
 	suite.mediaRepositoryMock = new(repository.MediaRepositoryMock)
 
-	suite.service = MediaService{MediaRepository: suite.mediaRepositoryMock}
+	suite.service = MediaService{
+		MediaRepository: suite.mediaRepositoryMock,
+		Logger:          utils.Logger(),
+	}
 }
 
 func (suite *MediaServiceUnitTestSuite) TestNewPostService() {
