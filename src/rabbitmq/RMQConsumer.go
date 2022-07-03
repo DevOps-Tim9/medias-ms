@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"medias-ms/src/dto"
 	"medias-ms/src/service"
@@ -75,7 +76,7 @@ func (r RMQConsumer) HandleDeleteImage(message []byte) {
 
 	json.Unmarshal([]byte(message), &mediaDto)
 
-	r.MediaService.Delete(mediaDto.Id)
+	r.MediaService.Delete(mediaDto.Id, context.TODO())
 }
 
 func (r RMQConsumer) Worker(messages <-chan amqp.Delivery) {
