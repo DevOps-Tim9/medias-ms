@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"medias-ms/src/config"
 	config_db "medias-ms/src/config/db"
+	setupJaeger "medias-ms/src/config/jaeger"
 	"medias-ms/src/controller"
 	"medias-ms/src/rabbitmq"
 	"medias-ms/src/repository"
@@ -13,6 +14,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/opentracing/opentracing-go"
 	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
@@ -26,6 +28,18 @@ func main() {
 	repositoryContainer := initializeRepositories(dataBase)
 	serviceContainer := initializeServices(repositoryContainer)
 	controllerContainer := initializeControllers(serviceContainer)
+
+	tracer, trCloser, err := setupJaeger.InitJaeger()
+
+	if err != nil {
+		logger.Debug(err.Error())
+
+		fmt.Printf("error init jaeger %v", err)
+	} else {
+		defer trCloser.Close()
+
+		opentracing.SetGlobalTracer(tracer)
+	}
 
 	router := route.SetupRoutes(controllerContainer)
 

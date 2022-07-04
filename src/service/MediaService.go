@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"io"
 	"medias-ms/src/entity"
 	"medias-ms/src/repository"
@@ -10,13 +11,14 @@ import (
 	"strings"
 
 	"github.com/gofrs/uuid"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
 type IMediaService interface {
-	Save(*multipart.FileHeader) (entity.Media, error)
-	Delete(uint) error
-	GetById(uint) (*entity.Media, error)
+	Save(*multipart.FileHeader, context.Context) (entity.Media, error)
+	Delete(uint, context.Context) error
+	GetById(uint, context.Context) (*entity.Media, error)
 }
 
 type MediaService struct {
@@ -24,8 +26,12 @@ type MediaService struct {
 	Logger          *logrus.Entry
 }
 
-func (s MediaService) GetById(id uint) (*entity.Media, error) {
-	media, err := s.MediaRepository.GetById(id)
+func (s MediaService) GetById(id uint, ctx context.Context) (*entity.Media, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "Service - Get media by id")
+
+	defer span.Finish()
+
+	media, err := s.MediaRepository.GetById(id, ctx)
 
 	if err != nil {
 		return nil, err
@@ -34,7 +40,11 @@ func (s MediaService) GetById(id uint) (*entity.Media, error) {
 	return media, nil
 }
 
-func (s MediaService) Save(file *multipart.FileHeader) (entity.Media, error) {
+func (s MediaService) Save(file *multipart.FileHeader, ctx context.Context) (entity.Media, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "Service - Create media")
+
+	defer span.Finish()
+
 	s.Logger.Info("Saving media in file system")
 
 	url := s.SaveFile(file)
@@ -45,15 +55,19 @@ func (s MediaService) Save(file *multipart.FileHeader) (entity.Media, error) {
 
 	s.Logger.Info("Saving media in database.")
 
-	media, error := s.MediaRepository.Create(media)
+	media, error := s.MediaRepository.Create(media, ctx)
 
 	return media, error
 }
 
-func (s MediaService) Delete(id uint) error {
+func (s MediaService) Delete(id uint, ctx context.Context) error {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "Service - Delete media by id")
+
+	defer span.Finish()
+
 	s.Logger.Info("Finding media by id")
 
-	media, err := s.GetById(id)
+	media, err := s.GetById(id, ctx)
 
 	if err != nil {
 		s.Logger.Error("Media doesn't exist")
@@ -67,7 +81,7 @@ func (s MediaService) Delete(id uint) error {
 
 	s.Logger.Info("Started deleting media from DB")
 
-	s.MediaRepository.Delete(id)
+	s.MediaRepository.Delete(id, ctx)
 
 	return nil
 }
