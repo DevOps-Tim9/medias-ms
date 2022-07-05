@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"medias-ms/src/entity"
 	"medias-ms/src/repository"
@@ -84,7 +85,7 @@ func TestMediaServiceIntegrationTestSuite(t *testing.T) {
 }
 
 func (suite *MediaServiceIntegrationTestSuite) TestIntegrationMediaService_GetById_MediaDoesNotExist() {
-	media, err := suite.service.GetById(5)
+	media, err := suite.service.GetById(5, context.TODO())
 
 	assert.NotNil(suite.T(), err)
 	assert.Nil(suite.T(), media)
@@ -93,7 +94,7 @@ func (suite *MediaServiceIntegrationTestSuite) TestIntegrationMediaService_GetBy
 func (suite *MediaServiceIntegrationTestSuite) TestIntegrationMediaService_GetById_MediaDoesExist() {
 	id := uint(100)
 
-	media, err := suite.service.GetById(id)
+	media, err := suite.service.GetById(id, context.TODO())
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), media)
@@ -103,7 +104,7 @@ func (suite *MediaServiceIntegrationTestSuite) TestIntegrationMediaService_GetBy
 func (suite *MediaServiceIntegrationTestSuite) TestIntegrationMediaService_Delete_MediaDoesExist() {
 	id := uint(200)
 
-	err := suite.service.Delete(id)
+	err := suite.service.Delete(id, context.TODO())
 
 	assert.Nil(suite.T(), err)
 }
@@ -111,7 +112,7 @@ func (suite *MediaServiceIntegrationTestSuite) TestIntegrationMediaService_Delet
 func (suite *MediaServiceIntegrationTestSuite) TestIntegrationMediaService_Delete_MediaDoesNotExist() {
 	id := uint(500)
 
-	err := suite.service.Delete(id)
+	err := suite.service.Delete(id, context.TODO())
 
 	assert.NotNil(suite.T(), err)
 }
@@ -125,7 +126,7 @@ func (suite *MediaServiceIntegrationTestSuite) TestIntegrationMediaService_Creat
 		Size:     0,
 	}
 
-	media, err := suite.service.Save(file)
+	media, err := suite.service.Save(file, context.TODO())
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), media.ID, id)
