@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"medias-ms/src/entity"
 	"medias-ms/src/repository"
@@ -41,7 +42,7 @@ func (suite *MediaServiceUnitTestSuite) TestNewPostService() {
 func (suite *MediaServiceUnitTestSuite) TestMediaService_GetById_MediaNotExist() {
 	err := errors.New("")
 
-	media, returnedErr := suite.service.GetById(2)
+	media, returnedErr := suite.service.GetById(2, context.TODO())
 
 	assert.Nil(suite.T(), media, "Media not nil")
 	assert.NotNil(suite.T(), returnedErr, "Error is nil")
@@ -56,7 +57,7 @@ func (suite *MediaServiceUnitTestSuite) TestMediaService_GetById_MediaExist() {
 		Url: "/this/is/ful/media/path",
 	}
 
-	returnedMedia, err := suite.service.GetById(1)
+	returnedMedia, err := suite.service.GetById(1, context.TODO())
 
 	assert.Nil(suite.T(), err, "Error not nil")
 	assert.NotNil(suite.T(), returnedMedia, "Media is nil")
@@ -65,13 +66,13 @@ func (suite *MediaServiceUnitTestSuite) TestMediaService_GetById_MediaExist() {
 }
 
 func (suite *MediaServiceUnitTestSuite) TestMediaService_Delete_MediaNotExist() {
-	err := suite.service.Delete(2)
+	err := suite.service.Delete(2, context.TODO())
 
 	assert.NotNil(suite.T(), err, "Error is nil")
 }
 
 func (suite *MediaServiceUnitTestSuite) TestMediaService_Delete_MediaExist() {
-	err := suite.service.Delete(1)
+	err := suite.service.Delete(1, context.TODO())
 
 	assert.Nil(suite.T(), err, "Error is not nil")
 }
@@ -85,7 +86,7 @@ func (suite *MediaServiceUnitTestSuite) TestMediaService_Create_ReturnsMedia() {
 		Size:     0,
 	}
 
-	media, err := suite.service.Save(file)
+	media, err := suite.service.Save(file, context.TODO())
 
 	assert.Nil(suite.T(), err, "Error is not nil")
 	assert.NotNil(suite.T(), media, "Media is nil")

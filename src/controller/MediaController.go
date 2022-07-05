@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/go-playground/validator.v8"
 )
@@ -26,13 +27,17 @@ func NewMediaController(mediaService service.IMediaService) MediaController {
 }
 
 func (c MediaController) Upload(w http.ResponseWriter, r *http.Request) {
+	span, ctx := opentracing.StartSpanFromContext(r.Context(), "Handle /api/medias")
+
+	defer span.Finish()
+
 	c.logger.Info("Uploading media request received")
 
 	r.ParseMultipartForm(32 << 20)
 
 	files := r.MultipartForm.File["files"]
 
-	media, error := c.MediaService.Save(files[0])
+	media, error := c.MediaService.Save(files[0], ctx)
 
 	if error != nil {
 		handleMediaError(error, w)
@@ -52,6 +57,10 @@ func (c MediaController) Upload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c MediaController) Delete(w http.ResponseWriter, r *http.Request) {
+	span, ctx := opentracing.StartSpanFromContext(r.Context(), "Handle /api/medias/{id}")
+
+	defer span.Finish()
+
 	c.logger.Info("Deleting media request received")
 
 	params := mux.Vars(r)
@@ -66,7 +75,7 @@ func (c MediaController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.MediaService.Delete(uint(id))
+	c.MediaService.Delete(uint(id), ctx)
 
 	c.logger.Info("Media deleted successfully.")
 
@@ -74,6 +83,10 @@ func (c MediaController) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c MediaController) GetById(w http.ResponseWriter, r *http.Request) {
+	span, ctx := opentracing.StartSpanFromContext(r.Context(), "Handle /api/medias/{id}")
+
+	defer span.Finish()
+
 	c.logger.Info("Finding media by id request received")
 
 	params := mux.Vars(r)
@@ -88,7 +101,7 @@ func (c MediaController) GetById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	media, err := c.MediaService.GetById(uint(id))
+	media, err := c.MediaService.GetById(uint(id), ctx)
 
 	if err != nil {
 		c.logger.Error("Media not found")
