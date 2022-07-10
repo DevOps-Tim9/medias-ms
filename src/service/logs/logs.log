@@ -7,3 +7,12 @@
 {"level":"info","msg":"Started deleting media from DB","service":"","time":"2022-07-03T15:42:06+02:00"}
 {"level":"info","msg":"Finding media by id","service":"","time":"2022-07-03T15:42:06+02:00"}
 {"level":"error","msg":"Media doesn't exist","service":"","time":"2022-07-03T15:42:06+02:00"}
+{"level":"info","msg":"Saving media in file system","service":"","time":"2022-07-05T09:39:20+02:00"}
+{"level":"info","msg":"Saving media in file system","service":"","time":"2022-07-05T09:39:20+02:00"}
+{"level":"info","msg":"Media saved in file system","service":"","time":"2022-07-05T09:39:20+02:00"}
+{"level":"info","msg":"Saving media in database.","service":"","time":"2022-07-05T09:39:20+02:00"}
+{"level":"info","msg":"Finding media by id","service":"","time":"2022-07-05T09:39:20+02:00"}
+{"level":"info","msg":"Started deleting media from file system","service":"","time":"2022-07-05T09:39:20+02:00"}
+{"level":"info","msg":"Started deleting media from DB","service":"","time":"2022-07-05T09:39:20+02:00"}
+{"level":"info","msg":"Finding media by id","service":"","time":"2022-07-05T09:39:20+02:00"}
+{"level":"error","msg":"Media doesn't exist","service":"","time":"2022-07-05T09:39:20+02:00"}
