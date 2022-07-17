@@ -38,6 +38,7 @@ services:
       DATABASE_PORT: ${DATABASE_PORT}
       SERVER_PORT: ${SERVER_PORT}
       AMQP_SERVER_URL: ${AMQP_SERVER_URL}
+      EVENTS_MS: ${EVENTS_MS}
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     depends_on:
