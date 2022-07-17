@@ -15,7 +15,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
-    ports: 
+    ports:
       - 5432
 
   medias-server-test:
@@ -33,13 +33,17 @@ services:
       DATABASE_PORT: 5432
       SERVER_PORT: 8082
       AMQP_SERVER_URL: amqp://guest:guest@rabbitmq:5673/
-    ports: 
+      EVENTS_MS: http://localhost:9081/events
+    ports:
       - 8082
     depends_on:
       database-test:
         condition: service_healthy
 
 networks:
+  events-ms:
+    name: events-ms
+    driver: bridge
   medias-ms-test:
     name: medias-ms-test
     driver: bridge

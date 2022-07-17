@@ -1,11 +1,16 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"medias-ms/src/dto"
 	"medias-ms/src/service"
 	"medias-ms/src/utils"
 	"net/http"
+	"os"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/opentracing/opentracing-go"
@@ -44,12 +49,16 @@ func (c MediaController) Upload(w http.ResponseWriter, r *http.Request) {
 
 		c.logger.Error("Error occured in uploading media")
 
+		AddSystemEvent(time.Now().Format("2006-01-02 15:04:05"), "New media uploaded unsuccessfully")
+
 		return
 	}
 
 	payload, _ := json.Marshal(media)
 
 	c.logger.Info("Media uploaded successfully")
+
+	AddSystemEvent(time.Now().Format("2006-01-02 15:04:05"), "New media uploaded successfully")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -78,6 +87,8 @@ func (c MediaController) Delete(w http.ResponseWriter, r *http.Request) {
 	c.MediaService.Delete(uint(id), ctx)
 
 	c.logger.Info("Media deleted successfully.")
+
+	AddSystemEvent(time.Now().Format("2006-01-02 15:04:05"), fmt.Sprintf("Media with id %d deleted successfully", id))
 
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -124,4 +135,26 @@ func handleMediaError(error error, w http.ResponseWriter) http.ResponseWriter {
 	w.WriteHeader(http.StatusInternalServerError)
 
 	return w
+}
+
+func AddSystemEvent(time string, message string) error {
+	logger := utils.Logger()
+	event := dto.EventRequestDTO{
+		Timestamp: time,
+		Message:   message,
+	}
+
+	b, _ := json.Marshal(&event)
+	endpoint := os.Getenv("EVENTS_MS")
+	logger.Info("Sending system event to events-ms")
+	req, _ := http.NewRequest("POST", endpoint, bytes.NewBuffer(b))
+	req.Header.Set("content-type", "application/json")
+
+	_, err := http.DefaultClient.Do(req)
+	if err != nil {
+		logger.Debug("Error happened during sending system event")
+		return err
+	}
+
+	return nil
 }
