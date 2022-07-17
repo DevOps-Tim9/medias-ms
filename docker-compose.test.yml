@@ -7,7 +7,7 @@ services:
     restart: always
     networks:
       - events-ms
-      - network-for-ms
+      - network-for-ms-test
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
@@ -28,7 +28,7 @@ services:
     restart: on-failure
     networks:
       - events-ms
-      - network-for-ms
+      - network-for-ms-test
     environment:
       DATABASE_USERNAME: postgres
       DATABASE_PASSWORD: admin
