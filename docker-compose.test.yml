@@ -1,47 +1,6 @@
 version: "3.7"
 
 services:
-
-  database-events-test:
-    image: postgres:13
-    restart: always
-    networks:
-      - events-ms
-      - network-for-ms-test
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: SystemEvents-test
-    healthcheck:
-      test: pg_isready -U postgres -d SystemEvents-test
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
-    ports:
-      - "5451:5432"
-
-  events-server:
-    build:
-      context: 'https://github.com/DevOps-Tim9/events-ms.git#develop'
-      dockerfile: Dockerfile
-    restart: on-failure
-    networks:
-      - events-ms
-      - network-for-ms-test
-    environment:
-      DATABASE_USERNAME: postgres
-      DATABASE_PASSWORD: admin
-      DATABASE_DOMAIN: database-events-test
-      DATABASE_SCHEMA: SystemEvents-test
-      DATABASE_PORT: 5432
-      SERVER_PORT: 9081
-    ports:
-      - "9081:9081"
-    depends_on:
-      database-events-test:
-        condition: service_healthy
-
   database-test:
     image: postgres:13
     networks:
