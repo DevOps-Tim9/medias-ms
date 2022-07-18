@@ -4,24 +4,42 @@ import (
 	"fmt"
 	"medias-ms/src/config"
 	config_db "medias-ms/src/config/db"
+	setupJaeger "medias-ms/src/config/jaeger"
 	"medias-ms/src/controller"
 	"medias-ms/src/rabbitmq"
 	"medias-ms/src/repository"
 	"medias-ms/src/route"
 	"medias-ms/src/service"
+	"medias-ms/src/utils"
 	"net/http"
 	"os"
 
+	"github.com/opentracing/opentracing-go"
 	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
 
 func main() {
+	logger := utils.Logger()
+
+	logger.Info("Connecting with DB")
 	dataBase, _ := config_db.SetupDB()
 
 	repositoryContainer := initializeRepositories(dataBase)
 	serviceContainer := initializeServices(repositoryContainer)
 	controllerContainer := initializeControllers(serviceContainer)
+
+	tracer, trCloser, err := setupJaeger.InitJaeger()
+
+	if err != nil {
+		logger.Debug(err.Error())
+
+		fmt.Printf("error init jaeger %v", err)
+	} else {
+		defer trCloser.Close()
+
+		opentracing.SetGlobalTracer(tracer)
+	}
 
 	router := route.SetupRoutes(controllerContainer)
 
@@ -32,6 +50,8 @@ func main() {
 	port := os.Getenv("SERVER_PORT")
 
 	amqpServerURL := os.Getenv("AMQP_SERVER_URL")
+
+	logger.Info("Connecting on RabbitMq")
 
 	rabbit := rabbitmq.RMQConsumer{
 		ConnectionString: amqpServerURL,
@@ -54,6 +74,8 @@ func main() {
 
 	go rabbit.Worker(messages)
 
+	logger.Info("Starting server")
+
 	http.ListenAndServe(fmt.Sprintf(":%s", port), cors.AllowAll().Handler(router))
 }
 
@@ -70,6 +92,7 @@ func initializeControllers(serviceContainer config.ServiceContainer) config.Cont
 func initializeServices(repositoryContainer config.RepositoryContainer) config.ServiceContainer {
 	mediaService := service.MediaService{
 		MediaRepository: repositoryContainer.MediaRepository,
+		Logger:          utils.Logger(),
 	}
 
 	container := config.NewServiceContainer(

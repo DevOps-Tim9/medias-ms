@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"errors"
 	"medias-ms/src/entity"
 
@@ -12,15 +13,15 @@ type MediaRepositoryMock struct {
 	mock.Mock
 }
 
-func (r MediaRepositoryMock) Create(media entity.Media) (entity.Media, error) {
+func (r MediaRepositoryMock) Create(media entity.Media, ctx context.Context) (entity.Media, error) {
 	media.ID = 5
 	return media, nil
 }
 
-func (r MediaRepositoryMock) Delete(id uint) {
+func (r MediaRepositoryMock) Delete(id uint, ctx context.Context) {
 }
 
-func (r MediaRepositoryMock) GetById(id uint) (*entity.Media, error) {
+func (r MediaRepositoryMock) GetById(id uint, ctx context.Context) (*entity.Media, error) {
 	switch id {
 	case 1:
 		return &entity.Media{

@@ -1,0 +1,51 @@
+version: "3.7"
+
+services:
+  database-test:
+    image: postgres:13
+    networks:
+      - medias-ms-test
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: medias-ms-test
+    healthcheck:
+      test: pg_isready -U postgres -d medias-ms-test
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    ports:
+      - 5432
+
+  medias-server-test:
+    build:
+      dockerfile: Dockerfile.test
+      context: .
+    networks:
+      - medias-ms-test
+      - network-for-ms-test
+    environment:
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: admin
+      DATABASE_DOMAIN: database-test
+      DATABASE_SCHEMA: medias-ms-test
+      DATABASE_PORT: 5432
+      SERVER_PORT: 8082
+      AMQP_SERVER_URL: amqp://guest:guest@rabbitmq:5673/
+      EVENTS_MS: http://localhost:9081/events
+    ports:
+      - 8082
+    depends_on:
+      database-test:
+        condition: service_healthy
+
+networks:
+  events-ms:
+    name: events-ms
+    driver: bridge
+  medias-ms-test:
+    name: medias-ms-test
+    driver: bridge
+  network-for-ms-test:
+    name: network-for-ms-test

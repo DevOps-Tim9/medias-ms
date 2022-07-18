@@ -6,7 +6,7 @@ services:
     restart: always
     networks:
       - medias-ms
-    environment: 
+    environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -20,7 +20,7 @@ services:
       - "5433:5432"
     volumes:
       - data:/var/lib/postgresql/data
-      
+
   medias-server:
     build:
       context: .
@@ -30,7 +30,7 @@ services:
     networks:
       - medias-ms
       - network-for-ms
-    environment: 
+    environment:
       DATABASE_USERNAME: ${DATABASE_USERNAME}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_DOMAIN: ${DATABASE_DOMAIN}
@@ -38,19 +38,35 @@ services:
       DATABASE_PORT: ${DATABASE_PORT}
       SERVER_PORT: ${SERVER_PORT}
       AMQP_SERVER_URL: ${AMQP_SERVER_URL}
+      EVENTS_MS: ${EVENTS_MS}
     ports:
-    - "${SERVER_PORT}:${SERVER_PORT}"
+      - "${SERVER_PORT}:${SERVER_PORT}"
     depends_on:
       database:
         condition: service_healthy
     volumes:
       - images:/root/static
+      - logs:/root/logs
+
+  promtail:
+    image: grafana/promtail:latest
+    networks:
+      - medias-ms
+      - network-for-ms
+    volumes:
+      - "./promtail:/etc/promtail"
+      - "/var/log:/var/log"
+      - logs:/var/logs
+    command: -config.file=/etc/promtail/promtail.yml
+    restart: always
 
 volumes:
   data:
     name: medias-ms-database
   images:
     name: images
+  logs:
+    name: medias-logs
 
 networks:
   medias-ms:
